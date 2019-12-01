@@ -25,12 +25,12 @@ class ResnetGenerator(nn.Module):
         for i in range(n_downsampling):
             mult = 2**i
             DownBlock += [nn.ReflectionPad2d(1),
-                          nn.Conv2d(ngf * mult, ngf * mult * 4, kernel_size=3, stride=2, padding=0, bias=False),
-                          nn.InstanceNorm2d(ngf * mult * 4),
+                          nn.Conv2d(ngf * mult, ngf * mult * 2, kernel_size=3, stride=2, padding=0, bias=False),
+                          nn.InstanceNorm2d(ngf * mult * 2),
                           nn.ReLU(True)]
 
         # Down-Sampling Bottleneck
-        mult = 4 #2**n_downsampling
+        mult = 2 #2**n_downsampling
         for i in range(n_blocks):
             DownBlock += [ResnetBlock(ngf * mult, use_bias=False)]
 
@@ -61,11 +61,11 @@ class ResnetGenerator(nn.Module):
         # Up-Sampling
         UpBlock2 = []
         for i in range(n_downsampling):
-            mult = 4 #2**(n_downsampling - i)
+            mult = 2 #2**(n_downsampling - i)
             UpBlock2 += [nn.Upsample(scale_factor=2, mode='nearest'),
                          nn.ReflectionPad2d(1),
-                         nn.Conv2d(ngf * mult, int(ngf * mult / 4), kernel_size=3, stride=1, padding=0, bias=False),
-                         ILN(int(ngf * mult / 4)),
+                         nn.Conv2d(ngf * mult, int(ngf * mult / 2), kernel_size=3, stride=1, padding=0, bias=False),
+                         ILN(int(ngf * mult / 2)),
                          nn.ReLU(True)]
 
         UpBlock2 += [nn.ReflectionPad2d(3),
