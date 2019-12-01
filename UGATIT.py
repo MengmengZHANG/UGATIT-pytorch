@@ -109,10 +109,10 @@ class UGATIT(object) :
         """ Define Generator, Discriminator """
         self.genA2B = ResnetGenerator(input_nc=3, output_nc=3, ngf=self.ch, n_blocks=self.n_res, img_size=self.img_size, light=self.light).to(self.device)
         self.genB2A = ResnetGenerator(input_nc=3, output_nc=3, ngf=self.ch, n_blocks=self.n_res, img_size=self.img_size, light=self.light).to(self.device)
-        self.disGA = Discriminator(input_nc=3, ndf=self.ch, n_layers=7).to(self.device)
-        self.disGB = Discriminator(input_nc=3, ndf=self.ch, n_layers=7).to(self.device)
-        self.disLA = Discriminator(input_nc=3, ndf=self.ch, n_layers=5).to(self.device)
-        self.disLB = Discriminator(input_nc=3, ndf=self.ch, n_layers=5).to(self.device)
+        self.disGA = Discriminator(input_nc=3, ndf=self.ch, n_layers=5).to(self.device)
+        self.disGB = Discriminator(input_nc=3, ndf=self.ch, n_layers=5).to(self.device)
+        self.disLA = Discriminator(input_nc=3, ndf=self.ch, n_layers=3).to(self.device)
+        self.disLB = Discriminator(input_nc=3, ndf=self.ch, n_layers=3).to(self.device)
 
         """ Define Loss """
         self.L1_loss = nn.L1Loss().to(self.device)

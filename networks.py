@@ -21,16 +21,16 @@ class ResnetGenerator(nn.Module):
                       nn.ReLU(True)]
 
         # Down-Sampling
-        n_downsampling = 2
+        n_downsampling = 1
         for i in range(n_downsampling):
             mult = 2**i
             DownBlock += [nn.ReflectionPad2d(1),
-                          nn.Conv2d(ngf * mult, ngf * mult * 2, kernel_size=3, stride=2, padding=0, bias=False),
-                          nn.InstanceNorm2d(ngf * mult * 2),
+                          nn.Conv2d(ngf * mult, ngf * mult * 4, kernel_size=3, stride=2, padding=0, bias=False),
+                          nn.InstanceNorm2d(ngf * mult * 4),
                           nn.ReLU(True)]
 
         # Down-Sampling Bottleneck
-        mult = 2**n_downsampling
+        mult = 4 #2**n_downsampling
         for i in range(n_blocks):
             DownBlock += [ResnetBlock(ngf * mult, use_bias=False)]
 
@@ -61,11 +61,11 @@ class ResnetGenerator(nn.Module):
         # Up-Sampling
         UpBlock2 = []
         for i in range(n_downsampling):
-            mult = 2**(n_downsampling - i)
+            mult = 4 #2**(n_downsampling - i)
             UpBlock2 += [nn.Upsample(scale_factor=2, mode='nearest'),
                          nn.ReflectionPad2d(1),
-                         nn.Conv2d(ngf * mult, int(ngf * mult / 2), kernel_size=3, stride=1, padding=0, bias=False),
-                         ILN(int(ngf * mult / 2)),
+                         nn.Conv2d(ngf * mult, int(ngf * mult / 4), kernel_size=3, stride=1, padding=0, bias=False),
+                         ILN(int(ngf * mult / 4)),
                          nn.ReLU(True)]
 
         UpBlock2 += [nn.ReflectionPad2d(3),
@@ -195,28 +195,28 @@ class ILN(nn.Module):
 
 
 class Discriminator(nn.Module):
-    def __init__(self, input_nc, ndf=64, n_layers=5):
+    def __init__(self, input_nc, ndf=64, n_layers=3):
         super(Discriminator, self).__init__()
         model = [nn.ReflectionPad2d(1),
                  nn.utils.spectral_norm(
-                 nn.Conv2d(input_nc, ndf, kernel_size=4, stride=2, padding=0, bias=True)),
+                 nn.Conv2d(input_nc, ndf, kernel_size=3, stride=2, padding=0, bias=True)),
                  nn.LeakyReLU(0.2, True)]
 
         for i in range(1, n_layers - 2):
-            mult = 2 ** (i - 1)
+            mult = 2 ** (i - 1)# 1 2
             model += [nn.ReflectionPad2d(1),
                       nn.utils.spectral_norm(
-                      nn.Conv2d(ndf * mult, ndf * mult * 2, kernel_size=4, stride=2, padding=0, bias=True)),
+                      nn.Conv2d(ndf * mult, ndf * mult * 2, kernel_size=3, stride=2, padding=0, bias=True)),
                       nn.LeakyReLU(0.2, True)]
 
         mult = 2 ** (n_layers - 2 - 1)
         model += [nn.ReflectionPad2d(1),
-                  nn.utils.spectral_norm(
-                  nn.Conv2d(ndf * mult, ndf * mult * 2, kernel_size=4, stride=1, padding=0, bias=True)),
+                  nn.utils.spectral_norm(#8 + 2 + 1 -3 
+                  nn.Conv2d(ndf * mult, ndf * mult * 2, kernel_size=3, stride=1, padding=0, bias=True)),
                   nn.LeakyReLU(0.2, True)]
 
         # Class Activation Map
-        mult = 2 ** (n_layers - 2)
+        mult = 2 ** (n_layers - 2) # 2
         self.gap_fc = nn.utils.spectral_norm(nn.Linear(ndf * mult, 1, bias=False))
         self.gmp_fc = nn.utils.spectral_norm(nn.Linear(ndf * mult, 1, bias=False))
         self.conv1x1 = nn.Conv2d(ndf * mult * 2, ndf * mult, kernel_size=1, stride=1, bias=True)
@@ -224,7 +224,7 @@ class Discriminator(nn.Module):
 
         self.pad = nn.ReflectionPad2d(1)
         self.conv = nn.utils.spectral_norm(
-            nn.Conv2d(ndf * mult, 1, kernel_size=4, stride=1, padding=0, bias=False))
+            nn.Conv2d(ndf * mult, 1, kernel_size=3, stride=1, padding=0, bias=False))
 
         self.model = nn.Sequential(*model)
 
