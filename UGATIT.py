@@ -113,6 +113,33 @@ class UGATIT(object) :
         self.disGB = Discriminator(input_nc=3, ndf=self.ch, n_layers=5).to(self.device)
         self.disLA = Discriminator(input_nc=3, ndf=self.ch, n_layers=3).to(self.device)
         self.disLB = Discriminator(input_nc=3, ndf=self.ch, n_layers=3).to(self.device)
+        cnt = 0
+        
+        cur_cnt = sum(p.numel() for p in self.genA2B.parameters())
+        print (cur_cnt)
+        cnt += cur_cnt
+
+        cur_cnt = sum(p.numel() for p in self.genB2A.parameters())
+        print (cur_cnt)
+        cnt += cur_cnt
+
+        cur_cnt = sum(p.numel() for p in self.disGA.parameters())
+        print (cur_cnt)
+        cnt += cur_cnt
+
+        cur_cnt = sum(p.numel() for p in self.disGB.parameters())
+        print (cur_cnt)
+        cnt += cur_cnt
+
+        cur_cnt = sum(p.numel() for p in self.disLA.parameters())
+        print (cur_cnt)
+        cnt += cur_cnt
+
+        cur_cnt = sum(p.numel() for p in self.disLB.parameters())
+        print (cur_cnt)
+        cnt += cur_cnt
+
+        print ('total cnt:', cnt)
 
         """ Define Loss """
         self.L1_loss = nn.L1Loss().to(self.device)
