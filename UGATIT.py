@@ -395,7 +395,7 @@ class UGATIT(object) :
         self.disLA.load_state_dict(params['disLA'])
         self.disLB.load_state_dict(params['disLB'])
 
-    def test(self):
+    def test(self, single=False):
         model_list = glob(os.path.join(self.result_dir, self.dataset, 'model', '*.pt'))
         if not len(model_list) == 0:
             model_list.sort()
@@ -424,7 +424,9 @@ class UGATIT(object) :
                                   cam(tensor2numpy(fake_A2B2A_heatmap[0]), self.img_size),
                                   RGB2BGR(tensor2numpy(denorm(fake_A2B2A[0])))), 0)
 
-            cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test', 'A2B_%d.png' % (n + 1)), A2B * 255.0)
+            #cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test', 'A2B_%d.png' % (n + 1)), A2B * 255.0)
+            
+            cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test_A2B', 'A2B_%d.png' % (n + 1)), RGB2BGR(tensor2numpy(denorm(fake_A2B[0]))) * 255.0)
 
         for n, (real_B, _) in enumerate(self.testB_loader):
             real_B = real_B.to(self.device)
@@ -442,5 +444,6 @@ class UGATIT(object) :
                                   RGB2BGR(tensor2numpy(denorm(fake_B2A[0]))),
                                   cam(tensor2numpy(fake_B2A2B_heatmap[0]), self.img_size),
                                   RGB2BGR(tensor2numpy(denorm(fake_B2A2B[0])))), 0)
+            cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test_B2A', 'B2A_%d.png' % (n + 1)), RGB2BGR(tensor2numpy(denorm(fake_B2A[0]))) * 255.0)
 
-            cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test', 'B2A_%d.png' % (n + 1)), B2A * 255.0)
+            #cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test', 'B2A_%d.png' % (n + 1)), B2A * 255.0)
