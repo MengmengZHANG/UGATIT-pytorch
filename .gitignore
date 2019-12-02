@@ -1,3 +1,6 @@
 pretrained
 results
 dataset
+*.pyc
+__pycache__
+
