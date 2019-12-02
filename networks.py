@@ -12,6 +12,8 @@ for param in resnet.parameters():
     param.requires_grad = False
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 resnet = resnet.to(DEVICE)
+embed_size = 2048
+embed_red = 4
 
 class ResnetGenerator(nn.Module):
     def __init__(self, input_nc, output_nc, ngf=64, n_blocks=6, img_size=256, light=False):
@@ -53,7 +55,7 @@ class ResnetGenerator(nn.Module):
 
         # Gamma, Beta block
         if self.light:
-            FC = [nn.Linear(ngf * mult * 2, ngf * mult * 2, bias=False),
+            FC = [nn.Linear(ngf * mult + embed_size // embed_red, ngf * mult * 2, bias=False),
                   nn.ReLU(True),
                   nn.Linear(ngf * mult * 2, ngf * mult, bias=False),
                   nn.ReLU(True)]
@@ -109,7 +111,7 @@ class ResnetGenerator(nn.Module):
         if self.light:
             embed = resnet(input)
             embed = embed.unsqueeze(1)
-            embed = torch.nn.functional.adaptive_avg_pool1d(embed, self.ngf * self.mult)
+            embed = torch.nn.functional.adaptive_avg_pool1d(embed, embed_size // embed_red)
             embed = embed.squeeze(1)
             x_ = torch.nn.functional.adaptive_avg_pool2d(x, 1)
             x_ = x_.view(x_.shape[0], -1)
