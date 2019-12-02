@@ -6,6 +6,11 @@ from networks import *
 from utils import *
 from glob import glob
 
+log_file = open('output.log', 'w+', buffering=1)
+def log(str):
+    print(str)
+    log_file.write(str+'\n')
+
 class UGATIT(object) :
     def __init__(self, args):
         self.light = args.light
@@ -49,34 +54,34 @@ class UGATIT(object) :
         self.resume = args.resume
 
         if torch.backends.cudnn.enabled and self.benchmark_flag:
-            print('set benchmark !')
+            log( 'set benchmark !')
             torch.backends.cudnn.benchmark = True
 
-        print()
+        log( '')
 
-        print("##### Information #####")
-        print("# light : ", self.light)
-        print("# dataset : ", self.dataset)
-        print("# batch_size : ", self.batch_size)
-        print("# iteration per epoch : ", self.iteration)
+        log( "##### Information #####")
+        log( "# light : " + str(self.light))
+        log( "# dataset : "+ str( self.dataset))
+        log( "# batch_size : "+ str( self.batch_size))
+        log( "# iteration per epoch : "+str( self.iteration))
 
-        print()
+        log( '')
 
-        print("##### Generator #####")
-        print("# residual blocks : ", self.n_res)
+        log( "##### Generator #####")
+        log( "# residual blocks : "+str(self.n_res))
 
-        print()
+        log( '')
 
-        print("##### Discriminator #####")
-        print("# discriminator layer : ", self.n_dis)
+        log( "##### Discriminator #####")
+        log( "# discriminator layer : "+str( self.n_dis))
 
-        print()
+        log( '')
 
-        print("##### Weight #####")
-        print("# adv_weight : ", self.adv_weight)
-        print("# cycle_weight : ", self.cycle_weight)
-        print("# identity_weight : ", self.identity_weight)
-        print("# cam_weight : ", self.cam_weight)
+        log( "##### Weight #####")
+        log( "# adv_weight : "+str( self.adv_weight))
+        log( "# cycle_weight : "+str( self.cycle_weight))
+        log( "# identity_weight : "+str(self.identity_weight))
+        log( "# cam_weight : "+str( self.cam_weight))
 
     ##################################################################################
     # Model
@@ -86,7 +91,7 @@ class UGATIT(object) :
         """ DataLoader """
         train_transform = transforms.Compose([
             transforms.RandomHorizontalFlip(),
-            transforms.Resize((self.img_size + 30, self.img_size+30)),
+            transforms.Resize((self.img_size + 8, self.img_size+8)),
             transforms.RandomCrop(self.img_size),
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
@@ -163,13 +168,13 @@ class UGATIT(object) :
                 model_list.sort()
                 start_iter = int(model_list[-1].split('_')[-1].split('.')[0])
                 self.load(os.path.join(self.result_dir, self.dataset, 'model'), start_iter)
-                print(" [*] Load SUCCESS")
+                log( " [*] Load SUCCESS")
                 if self.decay_flag and start_iter > (self.iteration // 2):
                     self.G_optim.param_groups[0]['lr'] -= (self.lr / (self.iteration // 2)) * (start_iter - self.iteration // 2)
                     self.D_optim.param_groups[0]['lr'] -= (self.lr / (self.iteration // 2)) * (start_iter - self.iteration // 2)
 
         # training loop
-        print('training start !')
+        log( 'training start !')
         start_time = time.time()
         for step in range(start_iter, self.iteration + 1):
             if self.decay_flag and step > (self.iteration // 2):
@@ -268,7 +273,7 @@ class UGATIT(object) :
             self.genA2B.apply(self.Rho_clipper)
             self.genB2A.apply(self.Rho_clipper)
 
-            print("[%5d/%5d] time: %4.4f d_loss: %.8f, g_loss: %.8f" % (step, self.iteration, time.time() - start_time, Discriminator_loss, Generator_loss))
+            log( "[%5d/%5d] time: %4.4f d_loss: %.8f, g_loss: %.8f" % (step, self.iteration, time.time() - start_time, Discriminator_loss, Generator_loss))
             if step % self.print_freq == 0:
                 train_sample_num = 5
                 test_sample_num = 5
@@ -396,9 +401,9 @@ class UGATIT(object) :
             model_list.sort()
             iter = int(model_list[-1].split('_')[-1].split('.')[0])
             self.load(os.path.join(self.result_dir, self.dataset, 'model'), iter)
-            print(" [*] Load SUCCESS")
+            log( " [*] Load SUCCESS")
         else:
-            print(" [*] Load FAILURE")
+            log( " [*] Load FAILURE")
             return
 
         self.genA2B.eval(), self.genB2A.eval()
