@@ -1,7 +1,17 @@
 import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
+from torchvision import models
 
+# Pretrained Resnet50 for embeddings
+resnet = models.resnet50(pretrained=True)
+# Change the last layer
+resnet.fc = nn.Identity()
+# Freeze model weights
+for param in resnet.parameters():
+    param.requires_grad = False
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+resnet = resnet.to(DEVICE)
 
 class ResnetGenerator(nn.Module):
     def __init__(self, input_nc, output_nc, ngf=64, n_blocks=6, img_size=256, light=False):
@@ -31,6 +41,7 @@ class ResnetGenerator(nn.Module):
 
         # Down-Sampling Bottleneck
         mult = 2 #2**n_downsampling
+        self.mult = mult
         for i in range(n_blocks):
             DownBlock += [ResnetBlock(ngf * mult, use_bias=False)]
 
@@ -42,9 +53,9 @@ class ResnetGenerator(nn.Module):
 
         # Gamma, Beta block
         if self.light:
-            FC = [nn.Linear(ngf * mult, ngf * mult, bias=False),
+            FC = [nn.Linear(ngf * mult * 2, ngf * mult * 2, bias=False),
                   nn.ReLU(True),
-                  nn.Linear(ngf * mult, ngf * mult, bias=False),
+                  nn.Linear(ngf * mult * 2, ngf * mult, bias=False),
                   nn.ReLU(True)]
         else:
             FC = [nn.Linear(img_size // mult * img_size // mult * ngf * mult, ngf * mult, bias=False),
@@ -96,8 +107,14 @@ class ResnetGenerator(nn.Module):
         heatmap = torch.sum(x, dim=1, keepdim=True)
 
         if self.light:
+            embed = resnet(input)
+            embed = embed.unsqueeze(1)
+            embed = torch.nn.functional.adaptive_avg_pool1d(embed, self.ngf * self.mult)
+            embed = embed.squeeze(1)
             x_ = torch.nn.functional.adaptive_avg_pool2d(x, 1)
-            x_ = self.FC(x_.view(x_.shape[0], -1))
+            x_ = x_.view(x_.shape[0], -1)
+            x_ = torch.cat([x_, embed], dim=1)
+            x_ = self.FC(x_)
         else:
             x_ = self.FC(x.view(x.shape[0], -1))
         gamma, beta = self.gamma(x_), self.beta(x_)
