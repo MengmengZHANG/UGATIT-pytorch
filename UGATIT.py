@@ -121,30 +121,30 @@ class UGATIT(object) :
         cnt = 0
         
         cur_cnt = sum(p.numel() for p in self.genA2B.parameters())
-        print (cur_cnt)
+        log ('genA2B.parameters ' +str(cur_cnt))
         cnt += cur_cnt
 
         cur_cnt = sum(p.numel() for p in self.genB2A.parameters())
-        print (cur_cnt)
+        log ('genB2A.parameters ' + str(cur_cnt))
         cnt += cur_cnt
 
         cur_cnt = sum(p.numel() for p in self.disGA.parameters())
-        print (cur_cnt)
+        log ('disGA.parameters ' + str(cur_cnt))
         cnt += cur_cnt
 
         cur_cnt = sum(p.numel() for p in self.disGB.parameters())
-        print (cur_cnt)
+        log ('disGB.parameters ' + str(cur_cnt))
         cnt += cur_cnt
 
         cur_cnt = sum(p.numel() for p in self.disLA.parameters())
-        print (cur_cnt)
+        log ('disLA.parameters ' + str(cur_cnt))
         cnt += cur_cnt
 
         cur_cnt = sum(p.numel() for p in self.disLB.parameters())
-        print (cur_cnt)
+        log ('disLB.parameters ' + str(cur_cnt))
         cnt += cur_cnt
 
-        print ('total cnt:', cnt)
+        log ('total parameters count: '+ str(cnt))
 
         """ Define Loss """
         self.L1_loss = nn.L1Loss().to(self.device)
