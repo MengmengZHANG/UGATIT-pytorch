@@ -11,8 +11,8 @@ def parse_args():
     parser.add_argument('--light', type=str2bool, default=True, help='[U-GAT-IT full version / U-GAT-IT light version]')
     parser.add_argument('--dataset', type=str, default='selfie2anime_64_64', help='dataset_name')
 
-    parser.add_argument('--iteration', type=int, default=200000, help='The number of training iterations')
-    parser.add_argument('--batch_size', type=int, default=4, help='The size of batch size')
+    parser.add_argument('--iteration', type=int, default=125000, help='The number of training iterations')
+    parser.add_argument('--batch_size', type=int, default=8, help='The size of batch size')
     parser.add_argument('--print_freq', type=int, default=5000, help='The number of image print freq')
     parser.add_argument('--save_freq', type=int, default=10000, help='The number of model save freq')
     parser.add_argument('--decay_flag', type=str2bool, default=True, help='The decay_flag')

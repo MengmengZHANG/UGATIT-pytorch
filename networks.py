@@ -202,21 +202,32 @@ class Discriminator(nn.Module):
                  nn.Conv2d(input_nc, ndf, kernel_size=3, stride=2, padding=0, bias=True)),
                  nn.LeakyReLU(0.2, True)]
 
+        # bottle neck for x-small-plus network
+        for i in range(1):
+            model += [nn.ReflectionPad2d(1),
+                      nn.utils.spectral_norm(
+                      nn.Conv2d(ndf, ndf, kernel_size=3, stride=1, padding=0, bias=True)),
+                      nn.LeakyReLU(0.2, True)]
         for i in range(1, n_layers - 2):
             mult = 2 ** (i - 1)# 1 2
             model += [nn.ReflectionPad2d(1),
                       nn.utils.spectral_norm(
                       nn.Conv2d(ndf * mult, ndf * mult * 2, kernel_size=3, stride=2, padding=0, bias=True)),
                       nn.LeakyReLU(0.2, True)]
-
-        mult = 2 ** (n_layers - 2 - 1)
+        
+        mult = 2 ** (n_layers - 2 - 1) # 4
+        model += [nn.ReflectionPad2d(1),
+                      nn.utils.spectral_norm(
+                      nn.Conv2d(ndf * mult, ndf * mult * 2, kernel_size=3, stride=1, padding=0, bias=True)),
+                      nn.LeakyReLU(0.2, True)]
+        mult *= 2
         model += [nn.ReflectionPad2d(1),
                   nn.utils.spectral_norm(#8 + 2 + 1 -3 
-                  nn.Conv2d(ndf * mult, ndf * mult * 2, kernel_size=3, stride=1, padding=0, bias=True)),
+                  nn.Conv2d(ndf * mult , ndf * mult * 2, kernel_size=3, stride=1, padding=0, bias=True)),
                   nn.LeakyReLU(0.2, True)]
 
         # Class Activation Map
-        mult = 2 ** (n_layers - 2) # 2
+        mult *= 2 # 2
         self.gap_fc = nn.utils.spectral_norm(nn.Linear(ndf * mult, 1, bias=False))
         self.gmp_fc = nn.utils.spectral_norm(nn.Linear(ndf * mult, 1, bias=False))
         self.conv1x1 = nn.Conv2d(ndf * mult * 2, ndf * mult, kernel_size=1, stride=1, bias=True)
