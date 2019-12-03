@@ -69,6 +69,7 @@ class DatasetFolder(data.Dataset):
         sample_big = self.loader(path_big)
         if self.transform is not None:
             sample = self.transform(sample)
+        if sample_big is not None and self.transform_big is not None:
             sample_big = self.transform_big(sample_big)
         if self.target_transform is not None:
             target = self.target_transform(target)
