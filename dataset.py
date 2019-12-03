@@ -26,22 +26,23 @@ def find_classes(dir):
     return classes, class_to_idx
 
 
-def make_dataset(dir, extensions):
+def make_dataset(dir, dir_big, extensions):
     images = []
     for root, _, fnames in sorted(os.walk(dir)):
         for fname in sorted(fnames):
             if has_file_allowed_extension(fname, extensions):
                 path = os.path.join(root, fname)
-                item = (path, 0)
+                path_big = os.path.join(dir_big, fname)
+                item = (path, path_big, 0)
                 images.append(item)
 
     return images
 
 
 class DatasetFolder(data.Dataset):
-    def __init__(self, root, loader, extensions, transform=None, target_transform=None):
+    def __init__(self, root, root_big, loader, extensions, transform=None, transform_big=None, target_transform=None):
         # classes, class_to_idx = find_classes(root)
-        samples = make_dataset(root, extensions)
+        samples = make_dataset(root, root_big, extensions)
         if len(samples) == 0:
             raise(RuntimeError("Found 0 files in subfolders of: " + root + "\n"
                                "Supported extensions are: " + ",".join(extensions)))
@@ -52,6 +53,7 @@ class DatasetFolder(data.Dataset):
         self.samples = samples
 
         self.transform = transform
+        self.transform_big = transform_big
         self.target_transform = target_transform
 
     def __getitem__(self, index):
@@ -62,14 +64,16 @@ class DatasetFolder(data.Dataset):
         Returns:
             tuple: (sample, target) where target is class_index of the target class.
         """
-        path, target = self.samples[index]
+        path, path_big, target = self.samples[index]
         sample = self.loader(path)
+        sample_big = self.loader(path_big)
         if self.transform is not None:
             sample = self.transform(sample)
+            sample_big = self.transform_big(sample_big)
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        return sample, target
+        return sample, sample_big, target
 
     def __len__(self):
         return len(self.samples)
@@ -100,9 +104,10 @@ def default_loader(path):
 
 
 class ImageFolder(DatasetFolder):
-    def __init__(self, root, transform=None, target_transform=None,
+    def __init__(self, root, root_big, transform=None, transform_big=None, target_transform=None,
                  loader=default_loader):
-        super(ImageFolder, self).__init__(root, loader, IMG_EXTENSIONS,
+        super(ImageFolder, self).__init__(root, root_big, loader, IMG_EXTENSIONS,
                                           transform=transform,
+                                          transform_big = transform_big,
                                           target_transform=target_transform)
         self.imgs = self.samples

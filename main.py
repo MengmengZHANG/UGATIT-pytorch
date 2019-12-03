@@ -10,6 +10,7 @@ def parse_args():
     parser.add_argument('--phase', type=str, default='train', help='[train / test]')
     parser.add_argument('--light', type=str2bool, default=True, help='[U-GAT-IT full version / U-GAT-IT light version]')
     parser.add_argument('--dataset', type=str, default='selfie2anime_64_64', help='dataset_name')
+    parser.add_argument('--dataset-big', type=str, default='selfie2anime', help='dataset_name')
 
     parser.add_argument('--iteration', type=int, default=125000, help='The number of training iterations')
     parser.add_argument('--batch_size', type=int, default=8, help='The size of batch size')
@@ -29,6 +30,7 @@ def parse_args():
     parser.add_argument('--n_dis', type=int, default=6, help='The number of discriminator layer')
 
     parser.add_argument('--img_size', type=int, default=64, help='The size of image')
+    parser.add_argument('--img_size_big', type=int, default=226, help='The size of image')
     parser.add_argument('--img_ch', type=int, default=3, help='The size of image channel')
 
     parser.add_argument('--result_dir', type=str, default='results', help='Directory name to save the results')

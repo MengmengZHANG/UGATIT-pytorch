@@ -1,6 +1,11 @@
 import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
+from facenet_pytorch import MTCNN, InceptionResnetV1
+
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+# mtcnn = MTCNN(image_size=<image_size>, margin=<margin>).to(DEVICE)
+resnet = InceptionResnetV1(pretrained='vggface2').eval().to(DEVICE)
 
 
 class ResnetGenerator(nn.Module):
@@ -42,9 +47,9 @@ class ResnetGenerator(nn.Module):
 
         # Gamma, Beta block
         if self.light:
-            FC = [nn.Linear(ngf * mult, ngf * mult, bias=False),
+            FC = [nn.Linear(ngf * mult + 512, ngf * mult + 256, bias=False),
                   nn.ReLU(True),
-                  nn.Linear(ngf * mult, ngf * mult, bias=False),
+                  nn.Linear(ngf * mult + 256, ngf * mult, bias=False),
                   nn.ReLU(True)]
         else:
             FC = [nn.Linear(img_size // mult * img_size // mult * ngf * mult, ngf * mult, bias=False),
@@ -76,7 +81,7 @@ class ResnetGenerator(nn.Module):
         self.FC = nn.Sequential(*FC)
         self.UpBlock2 = nn.Sequential(*UpBlock2)
 
-    def forward(self, input):
+    def forward(self, input, input_big):
         x = self.DownBlock(input)
 
         gap = torch.nn.functional.adaptive_avg_pool2d(x, 1)
@@ -96,8 +101,14 @@ class ResnetGenerator(nn.Module):
         heatmap = torch.sum(x, dim=1, keepdim=True)
 
         if self.light:
+            if input_big is not None:
+                embed = resnet(input_big)
+            else:
+                embed = torch.zeros(x.shape[0], 512).to(DEVICE)
             x_ = torch.nn.functional.adaptive_avg_pool2d(x, 1)
-            x_ = self.FC(x_.view(x_.shape[0], -1))
+            x_ = x_.view(x_.shape[0], -1)
+            x_ = torch.cat((x_, embed), dim=1)
+            x_ = self.FC(x_)
         else:
             x_ = self.FC(x.view(x.shape[0], -1))
         gamma, beta = self.gamma(x_), self.beta(x_)
