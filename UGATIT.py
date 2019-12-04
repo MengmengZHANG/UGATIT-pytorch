@@ -121,30 +121,30 @@ class UGATIT(object) :
         cnt = 0
         
         cur_cnt = sum(p.numel() for p in self.genA2B.parameters())
-        print (cur_cnt)
+        log ('genA2B.parameters ' +str(cur_cnt))
         cnt += cur_cnt
 
         cur_cnt = sum(p.numel() for p in self.genB2A.parameters())
-        print (cur_cnt)
+        log ('genB2A.parameters ' + str(cur_cnt))
         cnt += cur_cnt
 
         cur_cnt = sum(p.numel() for p in self.disGA.parameters())
-        print (cur_cnt)
+        log ('disGA.parameters ' + str(cur_cnt))
         cnt += cur_cnt
 
         cur_cnt = sum(p.numel() for p in self.disGB.parameters())
-        print (cur_cnt)
+        log ('disGB.parameters ' + str(cur_cnt))
         cnt += cur_cnt
 
         cur_cnt = sum(p.numel() for p in self.disLA.parameters())
-        print (cur_cnt)
+        log ('disLA.parameters ' + str(cur_cnt))
         cnt += cur_cnt
 
         cur_cnt = sum(p.numel() for p in self.disLB.parameters())
-        print (cur_cnt)
+        log ('disLB.parameters ' + str(cur_cnt))
         cnt += cur_cnt
 
-        print ('total cnt:', cnt)
+        log ('total parameters count: '+ str(cnt))
 
         """ Define Loss """
         self.L1_loss = nn.L1Loss().to(self.device)
@@ -424,7 +424,7 @@ class UGATIT(object) :
                                   cam(tensor2numpy(fake_A2B2A_heatmap[0]), self.img_size),
                                   RGB2BGR(tensor2numpy(denorm(fake_A2B2A[0])))), 0)
 
-            #cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test', 'A2B_%d.png' % (n + 1)), A2B * 255.0)
+            cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test', 'A2B_%d.png' % (n + 1)), A2B * 255.0)
             
             cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test_A2B', 'A2B_%d.png' % (n + 1)), RGB2BGR(tensor2numpy(denorm(fake_A2B[0]))) * 255.0)
 
@@ -446,4 +446,4 @@ class UGATIT(object) :
                                   RGB2BGR(tensor2numpy(denorm(fake_B2A2B[0])))), 0)
             cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test_B2A', 'B2A_%d.png' % (n + 1)), RGB2BGR(tensor2numpy(denorm(fake_B2A[0]))) * 255.0)
 
-            #cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test', 'B2A_%d.png' % (n + 1)), B2A * 255.0)
+            cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test', 'B2A_%d.png' % (n + 1)), B2A * 255.0)
