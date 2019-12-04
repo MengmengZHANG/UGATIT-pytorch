@@ -1,3 +1,6 @@
 pretrained
 results
 dataset
+*-results-*
+*.pyc
+.DS_Store
