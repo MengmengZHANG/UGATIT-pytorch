@@ -5,7 +5,8 @@ from torch.utils.data import DataLoader
 from networks import *
 from utils import *
 from glob import glob
-
+from fid import fid
+from kid import kid_kid, kid_is
 log_file = open('output.log', 'w+', buffering=1)
 def log(str):
     print(str)
@@ -405,6 +406,16 @@ class UGATIT(object) :
         else:
             log( " [*] Load FAILURE")
             return
+        test_A2B_path = os.path.join(self.result_dir, self.dataset, 'test_A2B')
+        test_B2A_path = os.path.join(self.result_dir, self.dataset, 'test_B2A')
+
+        if os.path.exists(test_A2B_path) == False:
+            os.mkdir(test_A2B_path)
+        if os.path.exists(test_B2A_path) == False:
+            os.mkdir(test_B2A_path)
+
+        train_A_path = 'dataset/selfie2anime_64_64/trainA'
+        train_B_path = 'dataset/selfie2anime_64_64/trainB'
 
         self.genA2B.eval(), self.genB2A.eval()
         for n, (real_A, _) in enumerate(self.testA_loader):
@@ -424,8 +435,9 @@ class UGATIT(object) :
                                   cam(tensor2numpy(fake_A2B2A_heatmap[0]), self.img_size),
                                   RGB2BGR(tensor2numpy(denorm(fake_A2B2A[0])))), 0)
 
-            cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test', 'A2B_%d.png' % (n + 1)), A2B * 255.0)
-
+            #cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test', 'A2B_%d.png' % (n + 1)), A2B * 255.0)
+            cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test_A2B', 'A2B_%d.png' % (n + 1)), RGB2BGR(tensor2numpy(denorm(fake_A2B[0]))) * 255.0)
+        
         for n, (real_B, _) in enumerate(self.testB_loader):
             real_B = real_B.to(self.device)
 
@@ -443,4 +455,18 @@ class UGATIT(object) :
                                   cam(tensor2numpy(fake_B2A2B_heatmap[0]), self.img_size),
                                   RGB2BGR(tensor2numpy(denorm(fake_B2A2B[0])))), 0)
 
-            cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test', 'B2A_%d.png' % (n + 1)), B2A * 255.0)
+            #cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test', 'B2A_%d.png' % (n + 1)), B2A * 255.0)
+            cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test_B2A', 'B2A_%d.png' % (n + 1)), RGB2BGR(tensor2numpy(denorm(fake_B2A[0]))) * 255.0)
+        print ('calculating is now...')
+        print ('is score trainA vs output_B2A:', kid_is(test_B2A_path, 16))
+        print ('is score trainB vs output_A2B:', kid_is(test_A2B_path, 16))
+        
+        print ('calculating fid now...')
+        print ('fid score trainA vs output_B2A:', fid(train_A_path, test_B2A_path, 8))
+        print ('fid score trainB vs output_A2B:', fid(train_B_path, test_A2B_path, 8))
+
+
+        print ('calculating kid now...')
+        print ('kid score trainA vs output_B2A:', kid_kid(train_A_path, test_B2A_path, 16))
+        print ('kid score trainB vs output_A2B:', kid_kid(train_B_path, test_A2B_path, 16))
+
