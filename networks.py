@@ -2,35 +2,43 @@ import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
 from torchvision import models
+import torchvision
 # from torchsummary import summary
 
-# Pretrained Resnet50 for embeddings
-queezenet = models.squeezenet1_0(pretrained=True)
-# print (queezenet)
+# Pretrained squeezenet for embeddings
+squeezenet = models.squeezenet1_0(pretrained=True)
+    # def squeezenet.forward(self, x):
+    #     x = self.features(x)
+    #     x = self.classifier(x)
+    #     return torch.flatten(x, 1)
+
+# print (squeezenet)
 # Change the last layer
-# queezenet.classifier = nn.Identity()
-# output [-1, 1000, 1, 1]
+squeezenet.classifier = nn.Identity()
+# nn.Identity() -> output [-1, 512, 13, 13] -> torch.flatten(x, 1) ->output [-1, 512*13*13] -> avg pool -> [-1, 512, 1, 1] embedding
 # Freeze model weights
-for param in queezenet.parameters():
+for param in squeezenet.parameters():
     param.requires_grad = False
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-queezenet = queezenet.to(DEVICE)
-queezenet_output_size = 1000 * 1 * 1
-embedding_size = 128
+squeezenet = squeezenet.to(DEVICE)
 
-# summary(queezenet, (3, 224, 224))
+
+# summary(squeezenet, (3, 224, 224))
 
 class ResnetGenerator(nn.Module):
-    def __init__(self, input_nc, output_nc, ngf=64, n_blocks=6, img_size=256, light=False):
+    def __init__(self, dir, input_nc, output_nc, ngf=64, n_blocks=6, img_size=256, light=False):
         assert(n_blocks >= 0)
         super(ResnetGenerator, self).__init__()
+        self.dir = dir
         self.input_nc = input_nc
         self.output_nc = output_nc
         self.ngf = ngf
         self.n_blocks = n_blocks
         self.img_size = img_size
         self.light = light
-
+        # [N, 512, 13, 13] => [N, 512, 1, 1]
+        self.feature_extractor = nn.Conv2d(512, 512, kernel_size=13, stride=1, padding=0, bias=True, groups=512)
+        
         DownBlock = []
         DownBlock += [nn.ReflectionPad2d(3),
                       nn.Conv2d(input_nc, ngf, kernel_size=7, stride=1, padding=0, bias=False),
@@ -60,8 +68,16 @@ class ResnetGenerator(nn.Module):
         # Gamma, Beta block
         if self.light:
             #  ngf * mult = 128, 
-            self.embedding = nn.Linear(queezenet_output_size, ngf * mult)
-            FC = [nn.Linear(ngf * mult * 2 , ngf * mult, bias=False),
+            if dir == 'A2B':
+                # print ('FC A2B')
+                FC = [nn.Linear(ngf * mult + 512 , ngf * mult + 256, bias=False),
+                    nn.ReLU(True),
+                    nn.Linear(ngf * mult + 256, ngf * mult, bias=False),
+                    nn.ReLU(True)]
+            else:
+                # B2A
+                # print ('FC B2A')
+                FC = [nn.Linear(ngf * mult , ngf * mult, bias=False),
                   nn.ReLU(True),
                   nn.Linear(ngf * mult, ngf * mult, bias=False),
                   nn.ReLU(True)]
@@ -96,6 +112,9 @@ class ResnetGenerator(nn.Module):
         self.UpBlock2 = nn.Sequential(*UpBlock2)
 
     def forward(self, input):
+        # x = torch.zeros(input.shape).to(DEVICE)
+        # for i in range(input.shape[0]):
+        #     x[i] = torchvision.transforms.functional.normalize(input[i], mean=[0.5, 0.5, 0.5],std=[0.5, 0.5, 0.5])
         x = self.DownBlock(input)
 
         gap = torch.nn.functional.adaptive_avg_pool2d(x, 1)
@@ -115,24 +134,40 @@ class ResnetGenerator(nn.Module):
         heatmap = torch.sum(x, dim=1, keepdim=True)
 
         if self.light:
-            # input [N, 3, 64, 64])
-            new_img=torch.nn.functional.interpolate(input, size=(224,224), align_corners=True, mode='bilinear')
-            # ([N, 3, 224, 224])
-            embed = queezenet(new_img)
-            # [N, 1000, 1, 1] 
-            embed = embed.view(embed.shape[0], -1)
-            # [N, 1000 * 1 * 1] 
-           
-            # print (self.embedding)
-            embed = self.embedding(embed)
-            # [N, 128]
-            x_ = torch.nn.functional.adaptive_avg_pool2d(x, 1)
-            # [N, 128, 1, 1]
-            x_ = x_.view(x_.shape[0], -1)
-            # [N, 128]
-            x_ = torch.cat([x_, embed], dim=1)
-            # [N, 256]
-            x_ = self.FC(x_)
+            if self.dir == 'A2B':
+                # print ('A2B')
+                # input [N, 3, 64, 64])
+                inp = torch.zeros(input.shape).to(DEVICE)
+                for i in range(input.shape[0]):
+                    inp[i] = torchvision.transforms.functional.normalize(input[i], mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
+                new_img=torch.nn.functional.interpolate(inp, size=(224,224), align_corners=True, mode='bilinear')
+                # ([N, 3, 224, 224])
+                # print ('new_img', new_img.shape)
+                embed = squeezenet(new_img)
+                # [N, 512* 13* 13]
+                # print ('embed', embed.shape)
+                embed = embed.view(embed.shape[0], 512, 13, -1)
+                # [N, 512, 13, 13]
+                # print ('embed', embed.shape)
+                embed = self.feature_extractor(embed)
+                # print ('embed', embed.shape)
+                # [N, 512, 1, 1]
+                embed = embed.view(embed.shape[0], -1)
+                # print ('embed', embed.shape)
+                # [N, 512 * 1 * 1] 
+            
+                x_ = torch.nn.functional.adaptive_avg_pool2d(x, 1)
+                # [N, 128, 1, 1]
+                x_ = x_.view(x_.shape[0], -1)
+                # [N, 128] + [N, 512]
+                x_ = torch.cat([x_, embed], dim=1)
+                # [N, 128+512]
+                x_ = self.FC(x_)
+            else:
+                # B2A
+                # print ('B2A')
+                x_ = torch.nn.functional.adaptive_avg_pool2d(x, 1)
+                x_ = self.FC(x_.view(x_.shape[0], -1))
         else:
             x_ = self.FC(x.view(x.shape[0], -1))
         gamma, beta = self.gamma(x_), self.beta(x_)

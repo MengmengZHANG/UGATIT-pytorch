@@ -113,8 +113,8 @@ class UGATIT(object) :
         self.testB_loader = DataLoader(self.testB, batch_size=1, shuffle=False)
 
         """ Define Generator, Discriminator """
-        self.genA2B = ResnetGenerator(input_nc=3, output_nc=3, ngf=self.ch, n_blocks=self.n_res, img_size=self.img_size, light=self.light).to(self.device)
-        self.genB2A = ResnetGenerator(input_nc=3, output_nc=3, ngf=self.ch, n_blocks=self.n_res, img_size=self.img_size, light=self.light).to(self.device)
+        self.genA2B = ResnetGenerator(dir='A2B', input_nc=3, output_nc=3, ngf=self.ch, n_blocks=self.n_res, img_size=self.img_size, light=self.light).to(self.device)
+        self.genB2A = ResnetGenerator(dir='B2A', input_nc=3, output_nc=3, ngf=self.ch, n_blocks=self.n_res, img_size=self.img_size, light=self.light).to(self.device)
         self.disGA = Discriminator(input_nc=3, ndf=self.ch, n_layers=5).to(self.device)
         self.disGB = Discriminator(input_nc=3, ndf=self.ch, n_layers=5).to(self.device)
         self.disLA = Discriminator(input_nc=3, ndf=self.ch, n_layers=3).to(self.device)
