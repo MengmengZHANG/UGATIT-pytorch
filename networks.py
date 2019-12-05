@@ -1,7 +1,24 @@
 import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
+from torchvision import models
+# from torchsummary import summary
 
+# Pretrained Resnet50 for embeddings
+queezenet = models.squeezenet1_0(pretrained=True)
+# print (queezenet)
+# Change the last layer
+# queezenet.classifier = nn.Identity()
+# output [-1, 1000, 1, 1]
+# Freeze model weights
+for param in queezenet.parameters():
+    param.requires_grad = False
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+queezenet = queezenet.to(DEVICE)
+queezenet_output_size = 1000 * 1 * 1
+embedding_size = 128
+
+# summary(queezenet, (3, 224, 224))
 
 class ResnetGenerator(nn.Module):
     def __init__(self, input_nc, output_nc, ngf=64, n_blocks=6, img_size=256, light=False):
@@ -42,7 +59,9 @@ class ResnetGenerator(nn.Module):
 
         # Gamma, Beta block
         if self.light:
-            FC = [nn.Linear(ngf * mult, ngf * mult, bias=False),
+            #  ngf * mult = 128, 
+            self.embedding = nn.Linear(queezenet_output_size, ngf * mult)
+            FC = [nn.Linear(ngf * mult * 2 , ngf * mult, bias=False),
                   nn.ReLU(True),
                   nn.Linear(ngf * mult, ngf * mult, bias=False),
                   nn.ReLU(True)]
@@ -96,8 +115,24 @@ class ResnetGenerator(nn.Module):
         heatmap = torch.sum(x, dim=1, keepdim=True)
 
         if self.light:
+            # input [N, 3, 64, 64])
+            new_img=torch.nn.functional.interpolate(input, size=(224,224), align_corners=True, mode='bilinear')
+            # ([N, 3, 224, 224])
+            embed = queezenet(new_img)
+            # [N, 1000, 1, 1] 
+            embed = embed.view(embed.shape[0], -1)
+            # [N, 1000 * 1 * 1] 
+           
+            # print (self.embedding)
+            embed = self.embedding(embed)
+            # [N, 128]
             x_ = torch.nn.functional.adaptive_avg_pool2d(x, 1)
-            x_ = self.FC(x_.view(x_.shape[0], -1))
+            # [N, 128, 1, 1]
+            x_ = x_.view(x_.shape[0], -1)
+            # [N, 128]
+            x_ = torch.cat([x_, embed], dim=1)
+            # [N, 256]
+            x_ = self.FC(x_)
         else:
             x_ = self.FC(x.view(x.shape[0], -1))
         gamma, beta = self.gamma(x_), self.beta(x_)

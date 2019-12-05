@@ -1,3 +1,6 @@
+pip install opencv-python --user
+pip install tensorflow==1.13.1 --user
+
 x-small architecture: https://docs.google.com/spreadsheets/d/1-Iw7YDFJ150s7TTygnStCL7RZnNKaH6TFhm7LSyBSww/edit?usp=sharing
 
 # connection

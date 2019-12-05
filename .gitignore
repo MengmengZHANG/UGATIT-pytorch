@@ -2,4 +2,6 @@ pretrained
 results*
 dataset
 __pycache__
-x-small-results*
+*-results*
+frozen_inception_v1_2015_12_05.tar.gz
+output.log
