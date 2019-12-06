@@ -5,3 +5,4 @@ __pycache__
 *-results-*
 *.tar.gz
 output.log
+.DS_Store
