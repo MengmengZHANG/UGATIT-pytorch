@@ -1,3 +1,7 @@
 pretrained
 results
 dataset
+__pycache__
+*-results-*
+*.tar.gz
+output.log
