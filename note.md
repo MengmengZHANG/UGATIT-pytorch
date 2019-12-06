@@ -1,8 +1,14 @@
+# env
+pip install nvidia-ml-py3 --user
+pip install opencv-python --user
+pip install tensorflow==1.13.1 --user
+pip install torchsummary
+
 x-small architecture: https://docs.google.com/spreadsheets/d/1-Iw7YDFJ150s7TTygnStCL7RZnNKaH6TFhm7LSyBSww/edit?usp=sharing
 
 # connection
-ssh -i ~/git-clones/AWS_P0.pem -L 8888:localhost:8888 ubuntu@3.91.30.108
-ssh -i ~/git-clones/AWS_P0.pem ubuntu@3.91.30.108
+ssh -i ~/git-clones/AWS_P0.pem -L 8888:localhost:8888 ubuntu@35.173.36.150
+ssh -i ~/git-clones/AWS_P0.pem ubuntu@35.173.36.150
 # mount volume
 lsblk 
 cd /
@@ -24,13 +30,14 @@ Ctrl-b o (use to traverse panes)
 Ctrl-b [ (scroll)
 
 # git data
-scp -i ~/git-clones/AWS_P0.pem -r ~/.ssh/id_rsa.pub ubuntu@54.196.221.145:~/.ssh/
-scp -i ~/git-clones/AWS_P0.pem -r ~/.ssh/id_rsa  ubuntu@54.196.221.145:~/.ssh/
+scp -i ~/git-clones/AWS_gmail.pem -r ~/.ssh/id_rsa.pub ubuntu@35.173.36.150:~/.ssh/
+scp -i ~/git-clones/AWS_gmail.pem -r ~/.ssh/id_rsa  ubuntu@35.173.36.150:~/.ssh/
+scp -i ~/git-clones/AWS_gmail.pem  -r ubuntu@35.173.36.150:/data/git-clones/UGATIT-pytorch/results/selfie2anime_64_64/test_HTML/ /Users/mzhang/git-clones/shallowLearners/UGATIT-pytorch/x-small-plus-HTML/selfie2anime_64_64/test_HTML/
 git pull
 
 # kaggle data
 pip3 install kaggle --user
-scp -i ~/git-clones/AWS_P0.pem -r ~/.kaggle ubuntu@54.196.221.145:~/.kaggle
+scp -i ~/git-clones/AWS_P0.pem -r ~/.kaggle ubuntu@35.173.36.150:~/.kaggle
 chmod 700 ~/.kaggle/kaggle.json 
 kaggle competitions download -c 11785-fall19-hw4p2
 unzip 11785-fall19-hw4p2.zip -d 11785-fall19-hw4p2

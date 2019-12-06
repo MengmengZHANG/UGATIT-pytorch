@@ -1,5 +1,8 @@
 pretrained
-results*
+*-results-*
 dataset
 __pycache__
 x-small-results*
+output.log
+*.tar.gz
+results
