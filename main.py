@@ -44,6 +44,8 @@ def check_args(args):
     check_folder(os.path.join(args.result_dir, args.dataset, 'model'))
     check_folder(os.path.join(args.result_dir, args.dataset, 'img'))
     check_folder(os.path.join(args.result_dir, args.dataset, 'test'))
+    check_folder(os.path.join(args.result_dir, args.dataset, 'test_A2B'))
+    check_folder(os.path.join(args.result_dir, args.dataset, 'test_B2A'))
 
     # --epoch
     try:

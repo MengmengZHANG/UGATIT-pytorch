@@ -425,7 +425,7 @@ class UGATIT(object) :
                                   cam(tensor2numpy(fake_A2B2A_heatmap[0]), self.img_size),
                                   RGB2BGR(tensor2numpy(denorm(fake_A2B2A[0])))), 0)
 
-            #cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test', 'A2B_%d.png' % (n + 1)), A2B * 255.0)
+            cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test', 'A2B_%d.png' % (n + 1)), A2B * 255.0)
             
             cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test_A2B', 'A2B_%d.png' % (n + 1)), RGB2BGR(tensor2numpy(denorm(fake_A2B[0]))) * 255.0)
 
@@ -447,4 +447,4 @@ class UGATIT(object) :
                                   RGB2BGR(tensor2numpy(denorm(fake_B2A2B[0])))), 0)
             cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test_B2A', 'B2A_%d.png' % (n + 1)), RGB2BGR(tensor2numpy(denorm(fake_B2A[0]))) * 255.0)
 
-            #cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test', 'B2A_%d.png' % (n + 1)), B2A * 255.0)
+            cv2.imwrite(os.path.join(self.result_dir, self.dataset, 'test', 'B2A_%d.png' % (n + 1)), B2A * 255.0)
