@@ -6,6 +6,11 @@ from networks import *
 from utils import *
 from glob import glob
 
+log_file = open('output.log', 'w+', buffering=1)
+def log(str):
+    print(str)
+    log_file.write(str+'\n')
+    
 class UGATIT(object) :
     def __init__(self, args):
         self.light = args.light
@@ -113,6 +118,34 @@ class UGATIT(object) :
         self.disGB = Discriminator(input_nc=3, ndf=self.ch, n_layers=5).to(self.device)
         self.disLA = Discriminator(input_nc=3, ndf=self.ch, n_layers=3).to(self.device)
         self.disLB = Discriminator(input_nc=3, ndf=self.ch, n_layers=3).to(self.device)
+
+        cnt = 0
+        
+        cur_cnt = sum(p.numel() for p in self.genA2B.parameters())
+        log ('genA2B.parameters ' +str(cur_cnt))
+        cnt += cur_cnt
+
+        cur_cnt = sum(p.numel() for p in self.genB2A.parameters())
+        log ('genB2A.parameters ' + str(cur_cnt))
+        cnt += cur_cnt
+
+        cur_cnt = sum(p.numel() for p in self.disGA.parameters())
+        log ('disGA.parameters ' + str(cur_cnt))
+        cnt += cur_cnt
+
+        cur_cnt = sum(p.numel() for p in self.disGB.parameters())
+        log ('disGB.parameters ' + str(cur_cnt))
+        cnt += cur_cnt
+
+        cur_cnt = sum(p.numel() for p in self.disLA.parameters())
+        log ('disLA.parameters ' + str(cur_cnt))
+        cnt += cur_cnt
+
+        cur_cnt = sum(p.numel() for p in self.disLB.parameters())
+        log ('disLB.parameters ' + str(cur_cnt))
+        cnt += cur_cnt
+
+        log ('total parameters count: '+ str(cnt))
 
         """ Define Loss """
         self.L1_loss = nn.L1Loss().to(self.device)
